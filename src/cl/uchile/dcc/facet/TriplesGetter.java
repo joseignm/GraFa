@@ -4,7 +4,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
-import java.util.Set;
 
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.RDFParser;
@@ -43,7 +42,6 @@ public class TriplesGetter {
             System.out.println(s.getSubject());
             System.out.println(s.getPredicate());
             System.out.println(s.getObject());
-            break;
         }
 
     }
