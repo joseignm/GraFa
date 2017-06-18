@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="facet" basedir="." default="dist">
+<project name="facet" basedir="." default="build-war">
     <property name="name" value="facet" />
     <property name="src" value="src" />
-    <property name="version" value="0.0.1" />
+    <property name="version" value="3.0" />
     <property name="dist" value="dist" />
+    <property name="web.dir" value="web" />
 
     <path id="classpath">
         <fileset dir="lib">
@@ -17,18 +18,193 @@
         <mkdir dir="dist" />
     </target>
 
-    <target name="dist" depends="clean,prepare">
-        <javac destdir="out" srcdir="src" includes="cl/uchile/**" source="1.6" target="1.6" debug="true" debuglevel="lines,source">
+    <target name="build-index" depends="clean,prepare">
+        <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
 
-        <jar jarfile="${dist}/${name}.jar" basedir="out">
+        <jar jarfile="${dist}/index_v${version}.jar" basedir="out">
             <manifest>
-                <attribute name="Main-Class" value="cl.uchile.dcc.facet.TriplesGetter" />
+                <attribute name="Main-Class" value="cl.uchile.dcc.facet.core.IndexData" />
             </manifest>
             <!-- put common dependancies lower -->
             <zipfileset src="lib/eclipse-rdf4j-2.2-onejar.jar" />
+            <zipfileset src="lib/commons-cli-1.1.jar" />
+            <zipfileset src="lib/commons-io-2.5.jar" />
+            <zipfileset src="lib/slf4j-api-1.7.25.jar" />
+            <zipfileset src="lib/slf4j-simple-1.7.25.jar" />
+            <zipfileset src="lib/nxparser-1.2.3.jar" />
+            <zipfileset src="lib/lucene-analyzers-common-6.5.0.jar" />
+            <zipfileset src="lib/lucene-core-6.5.0.jar" />
+            <zipfileset src="lib/lucene-queryparser-6.5.0.jar" />
         </jar>
+    </target>
+
+    <target name="build-rank" depends="clean,prepare">
+        <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
+            <classpath refid="classpath" />
+        </javac>
+
+        <jar jarfile="${dist}/rank_v${version}.jar" basedir="out">
+            <manifest>
+                <attribute name="Main-Class" value="cl.uchile.dcc.facet.core.RankData" />
+            </manifest>
+            <!-- put common dependancies lower -->
+            <zipfileset src="lib/eclipse-rdf4j-2.2-onejar.jar" />
+            <zipfileset src="lib/commons-cli-1.1.jar" />
+            <zipfileset src="lib/commons-io-2.5.jar" />
+            <zipfileset src="lib/slf4j-api-1.7.25.jar" />
+            <zipfileset src="lib/slf4j-simple-1.7.25.jar" />
+            <zipfileset src="lib/nxparser-1.2.3.jar" />
+            <zipfileset src="lib/lucene-analyzers-common-6.5.0.jar" />
+            <zipfileset src="lib/lucene-core-6.5.0.jar" />
+            <zipfileset src="lib/lucene-queryparser-6.5.0.jar" />
+        </jar>
+    </target>
+
+    <target name="build-boosts" depends="clean,prepare">
+        <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
+            <classpath refid="classpath" />
+        </javac>
+
+        <jar jarfile="${dist}/boosts_v${version}.jar" basedir="out">
+            <manifest>
+                <attribute name="Main-Class" value="cl.uchile.dcc.facet.core.UpdateBoosts" />
+            </manifest>
+            <!-- put common dependancies lower -->
+            <zipfileset src="lib/eclipse-rdf4j-2.2-onejar.jar" />
+            <zipfileset src="lib/commons-cli-1.1.jar" />
+            <zipfileset src="lib/commons-io-2.5.jar" />
+            <zipfileset src="lib/slf4j-api-1.7.25.jar" />
+            <zipfileset src="lib/slf4j-simple-1.7.25.jar" />
+            <zipfileset src="lib/nxparser-1.2.3.jar" />
+            <zipfileset src="lib/lucene-analyzers-common-6.5.0.jar" />
+            <zipfileset src="lib/lucene-core-6.5.0.jar" />
+            <zipfileset src="lib/lucene-queryparser-6.5.0.jar" />
+        </jar>
+    </target>
+
+    <target name="build-properties" depends="clean,prepare">
+        <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
+            <classpath refid="classpath" />
+        </javac>
+
+        <jar jarfile="${dist}/properties_v${version}.jar" basedir="out">
+            <manifest>
+                <attribute name="Main-Class" value="cl.uchile.dcc.facet.core.IndexProperties" />
+            </manifest>
+            <!-- put common dependancies lower -->
+            <zipfileset src="lib/eclipse-rdf4j-2.2-onejar.jar" />
+            <zipfileset src="lib/commons-cli-1.1.jar" />
+            <zipfileset src="lib/commons-io-2.5.jar" />
+            <zipfileset src="lib/slf4j-api-1.7.25.jar" />
+            <zipfileset src="lib/slf4j-simple-1.7.25.jar" />
+            <zipfileset src="lib/nxparser-1.2.3.jar" />
+            <zipfileset src="lib/lucene-analyzers-common-6.5.0.jar" />
+            <zipfileset src="lib/lucene-core-6.5.0.jar" />
+            <zipfileset src="lib/lucene-queryparser-6.5.0.jar" />
+        </jar>
+    </target>
+
+    <target name="build-instances" depends="clean,prepare">
+        <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
+            <classpath refid="classpath" />
+        </javac>
+
+        <jar jarfile="${dist}/instances_v${version}.jar" basedir="out">
+            <manifest>
+                <attribute name="Main-Class" value="cl.uchile.dcc.facet.core.IndexInstances" />
+            </manifest>
+            <!-- put common dependancies lower -->
+            <zipfileset src="lib/eclipse-rdf4j-2.2-onejar.jar" />
+            <zipfileset src="lib/commons-cli-1.1.jar" />
+            <zipfileset src="lib/commons-io-2.5.jar" />
+            <zipfileset src="lib/slf4j-api-1.7.25.jar" />
+            <zipfileset src="lib/slf4j-simple-1.7.25.jar" />
+            <zipfileset src="lib/nxparser-1.2.3.jar" />
+            <zipfileset src="lib/lucene-analyzers-common-6.5.0.jar" />
+            <zipfileset src="lib/lucene-core-6.5.0.jar" />
+            <zipfileset src="lib/lucene-queryparser-6.5.0.jar" />
+            <zipfileset src="lib/lucene-queries-6.5.0.jar" />
+        </jar>
+    </target>
+
+    <target name="build-searcher" depends="clean,prepare">
+        <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
+            <classpath refid="classpath" />
+        </javac>
+
+        <jar jarfile="${dist}/search_v${version}.jar" basedir="out">
+            <manifest>
+                <attribute name="Main-Class" value="cl.uchile.dcc.facet.core.SearchData" />
+            </manifest>
+            <!-- put common dependancies lower -->
+            <zipfileset src="lib/eclipse-rdf4j-2.2-onejar.jar" />
+            <zipfileset src="lib/commons-cli-1.1.jar" />
+            <zipfileset src="lib/commons-io-2.5.jar" />
+            <zipfileset src="lib/slf4j-api-1.7.25.jar" />
+            <zipfileset src="lib/slf4j-simple-1.7.25.jar" />
+            <zipfileset src="lib/nxparser-1.2.3.jar" />
+            <zipfileset src="lib/lucene-analyzers-common-6.5.0.jar" />
+            <zipfileset src="lib/lucene-core-6.5.0.jar" />
+            <zipfileset src="lib/lucene-queryparser-6.5.0.jar" />
+        </jar>
+    </target>
+
+    <target name="build-prop-getter" depends="clean,prepare">
+        <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
+            <classpath refid="classpath" />
+        </javac>
+
+        <jar jarfile="${dist}/prop-getter_v${version}.jar" basedir="out">
+            <manifest>
+                <attribute name="Main-Class" value="cl.uchile.dcc.facet.core.SearchProperties" />
+            </manifest>
+            <!-- put common dependancies lower -->
+            <zipfileset src="lib/eclipse-rdf4j-2.2-onejar.jar" />
+            <zipfileset src="lib/commons-cli-1.1.jar" />
+            <zipfileset src="lib/commons-io-2.5.jar" />
+            <zipfileset src="lib/slf4j-api-1.7.25.jar" />
+            <zipfileset src="lib/slf4j-simple-1.7.25.jar" />
+            <zipfileset src="lib/nxparser-1.2.3.jar" />
+            <zipfileset src="lib/lucene-analyzers-common-6.5.0.jar" />
+            <zipfileset src="lib/lucene-core-6.5.0.jar" />
+            <zipfileset src="lib/lucene-queryparser-6.5.0.jar" />
+        </jar>
+    </target>
+
+    <target name="build-ins-getter" depends="clean,prepare">
+        <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
+            <classpath refid="classpath" />
+        </javac>
+
+        <jar jarfile="${dist}/ins-getter_v${version}.jar" basedir="out">
+            <manifest>
+                <attribute name="Main-Class" value="cl.uchile.dcc.facet.core.SearchInstances" />
+            </manifest>
+            <!-- put common dependancies lower -->
+            <zipfileset src="lib/eclipse-rdf4j-2.2-onejar.jar" />
+            <zipfileset src="lib/commons-cli-1.1.jar" />
+            <zipfileset src="lib/commons-io-2.5.jar" />
+            <zipfileset src="lib/slf4j-api-1.7.25.jar" />
+            <zipfileset src="lib/slf4j-simple-1.7.25.jar" />
+            <zipfileset src="lib/nxparser-1.2.3.jar" />
+            <zipfileset src="lib/lucene-analyzers-common-6.5.0.jar" />
+            <zipfileset src="lib/lucene-core-6.5.0.jar" />
+            <zipfileset src="lib/lucene-queryparser-6.5.0.jar" />
+        </jar>
+    </target>
+
+    <target name="build-war" depends="clean,prepare">
+        <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
+            <classpath refid="classpath" />
+        </javac>
+
+        <war destfile="${dist}/facet_v${version}.war" webxml="${web.dir}/WEB-INF/web.xml">
+            <fileset dir="web" />
+            <lib dir="${web.dir}/WEB-INF/lib" />
+            <classes dir="out" />
+        </war>
     </target>
 
     <target name="clean">
@@ -36,6 +212,7 @@
         <delete>
             <fileset dir="dist">
                 <include name="*.jar" />
+                <include name="*.war" />
             </fileset>
         </delete>
     </target>

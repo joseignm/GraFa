@@ -1,3 +1,6 @@
 .idea/
 *.iml
 out/
+dist/
+lib/
+web/WEB-INF/lib/

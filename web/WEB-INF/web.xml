@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+
+    <context-param>
+        <param-name>LuceneDir</param-name>
+        <param-value>/home/jmoreno/bin/index_v2.6/</param-value>
+    </context-param>
+
+    <servlet>
+        <servlet-name>SearchRDF</servlet-name>
+        <servlet-class>cl.uchile.dcc.facet.web.SearchServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>Instances</servlet-name>
+        <servlet-class>cl.uchile.dcc.facet.web.InstancesServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>Properties</servlet-name>
+        <servlet-class>cl.uchile.dcc.facet.web.PropertiesServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>SearchRDF</servlet-name>
+        <url-pattern>/search</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>Instances</servlet-name>
+        <url-pattern>/instances</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>Properties</servlet-name>
+        <url-pattern>/properties</url-pattern>
+    </servlet-mapping>
+
+</web-app>
