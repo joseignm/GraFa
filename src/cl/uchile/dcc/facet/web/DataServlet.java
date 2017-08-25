@@ -37,7 +37,7 @@ public abstract class DataServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         try {
-            String LuceneDir = getServletContext().getInitParameter("LuceneDir");
+            String LuceneDir = getServletContext().getInitParameter("IndexDirectory");
             // open a reader for the directory
             reader = DirectoryReader.open(FSDirectory.open(Paths.get(LuceneDir)));
             // open a searcher over the reader

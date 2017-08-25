@@ -7,34 +7,46 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 class IndexHandler extends AbstractRDFHandler {
 
     private IndexWriter writer;
     private Resource last;
-    private StringBuilder alt_labels;
+    private List<String> alt_labels;
+    private List<String> ps;
     private Document d;
     private int read;
+    private Properties properties;
 
-    IndexHandler(IndexWriter iw) {
+    IndexHandler(IndexWriter iw) throws IOException {
         super();
         writer = iw;
         last = null;
-        alt_labels = new StringBuilder();
+        alt_labels = new ArrayList<>();
+        ps = new ArrayList<>();
         d = null;
         read = 0;
+        properties = new Properties();
+        InputStream input = new FileInputStream("facet.properties");
+        properties.load(input);
     }
 
     @Override
     public void handleStatement(Statement s) {
         final int TICKS = 100000;
-        final String entityIRI = "http://www.wikidata.org/entity/";
-        final String propertyIRI = "http://www.wikidata.org/prop/direct/";
-        final String labelIRI = "http://www.w3.org/2000/01/rdf-schema#label";
-        final String descriptionIRI = "http://schema.org/description";
-        final String alt_labelIRI = "http://www.w3.org/2004/02/skos/core#altLabel";
-        final String instanceOf = "P31";
+
+        final String entityIRI = properties.getProperty("entityIRI");
+        final String propertyIRI = properties.getProperty("propertyIRI");
+        final String labelIRI = properties.getProperty("labelIRI");
+        final String descriptionIRI = properties.getProperty("descriptionIRI");
+        final String alt_labelIRI = properties.getProperty("alt_labelIRI");
+        final String instanceOf = properties.getProperty("instanceOf");
 
         read++;
         if(read%TICKS==0)
@@ -55,14 +67,24 @@ class IndexHandler extends AbstractRDFHandler {
         }
         // NEW SUBJECT
         if(!last.toString().equals(subject.toString())) {
-            Field alt_label = new TextField(DataFields.ALT_LABEL.name(), alt_labels.toString(), Field.Store.YES);
-            alt_labels = new StringBuilder();
-            d.add(alt_label);
+            for(String label: alt_labels) {
+                Field alt_label = new TextField(DataFields.ALT_LABEL.name(), label, Field.Store.YES);
+                d.add(alt_label);
+            }
+            for(String p : ps) {
+                Field property = new StringField(DataFields.P.name(), p, Field.Store.YES);
+                d.add(property);
+            }
+            alt_labels = new ArrayList<>();
+            ps = new ArrayList<>();
             last = subject;
-            try {
-                writer.addDocument(d);
-            } catch(IOException e) {
-                System.err.println("Error writing Lucene document.");
+            // Write the document only if it has a proper label
+            if(d.get(DataFields.LABEL.name()) != null) {
+                try {
+                    writer.addDocument(d);
+                } catch (IOException e) {
+                    System.err.println("Error writing Lucene document.");
+                }
             }
             String name = last.toString();
             name = name.replace(entityIRI, "");
@@ -74,8 +96,7 @@ class IndexHandler extends AbstractRDFHandler {
         String predicate = s.getPredicate().toString();
         if(predicate.startsWith(propertyIRI)) {
             String p = predicate.replace(propertyIRI, "");
-            Field property = new StringField(DataFields.P.name(), p, Field.Store.YES);
-            d.add(property);
+            if(!ps.contains(p)) ps.add(p);
             String object = s.getObject().toString();
             String q = object.replace(entityIRI, "");
             String value = p + "##" + q;
@@ -86,25 +107,21 @@ class IndexHandler extends AbstractRDFHandler {
                 d.add(ins);
             }
         } else {
-            // LITERAL VALUES, ONLY ENGLISH
+            // LITERAL VALUES
+            String selectedLang = properties.getProperty("language");
             if(!(s.getObject() instanceof Literal)) return;
             Literal value = (Literal) s.getObject();
             String language = value.getLanguage().orElse("??");
-            if(!language.equals("en")) return;
+            if(!language.equals(selectedLang)) return;
             String object = value.getLabel();
-            switch (predicate){
-                case labelIRI:
-                    Field label = new TextField(DataFields.LABEL.name(), object, Field.Store.YES);
-                    d.add(label);
-                    break;
-                case descriptionIRI:
-                    Field description = new TextField(DataFields.DESCRIPTION.name(), object, Field.Store.YES);
-                    d.add(description);
-                    break;
-                case alt_labelIRI:
-                    alt_labels.append(object);
-                    alt_labels.append(' ');
-                    break;
+            if(predicate.equals(labelIRI)) {
+                Field label = new TextField(DataFields.LABEL.name(), object, Field.Store.YES);
+                d.add(label);
+            } else if(predicate.equals(descriptionIRI)) {
+                Field description = new TextField(DataFields.DESCRIPTION.name(), object, Field.Store.YES);
+                d.add(description);
+            } else if(predicate.equals(alt_labelIRI)) {
+                alt_labels.add(object);
             }
         }
     }
@@ -113,8 +130,14 @@ class IndexHandler extends AbstractRDFHandler {
         try {
             if(d != null) {
                 System.err.println(read + " lines read in total.");
-                Field alt_label = new TextField(DataFields.ALT_LABEL.name(), alt_labels.toString(), Field.Store.YES);
-                d.add(alt_label);
+                for(String label: alt_labels) {
+                    Field alt_label = new TextField(DataFields.ALT_LABEL.name(), label, Field.Store.YES);
+                    d.add(alt_label);
+                }
+                for(String p : ps) {
+                    Field property = new StringField(DataFields.P.name(), p, Field.Store.YES);
+                    d.add(property);
+                }
                 writer.addDocument(d);
             }
 

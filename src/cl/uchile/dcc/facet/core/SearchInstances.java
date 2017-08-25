@@ -5,7 +5,6 @@ import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
@@ -39,6 +38,7 @@ public class SearchInstances {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in, "utf-8"));
         SortField sortField = new SortedNumericSortField(InstancesFields.OCCURRENCES.name(), SortField.Type.LONG, true);
         Sort sort = new Sort(sortField);
+        System.out.println("Total instances: " + insReader.numDocs());
 
         while (true) {
             System.out.println("Enter search code:");
@@ -63,7 +63,7 @@ public class SearchInstances {
                         Query query;
                         TopDocs results;
                         if(opCode == 0) {
-                            query = new TermQuery(new Term(InstancesFields.Q.name(), line));
+                            query = new WildcardQuery(new Term(InstancesFields.Q.name(), line));
                         } else if(opCode == 1) {
                             query = new QueryParser(InstancesFields.LABEL.name(), analyzer).parse(line);
                         } else {
@@ -87,17 +87,9 @@ public class SearchInstances {
                             subject = doc.get(InstancesFields.Q.name());
                             label = doc.get(InstancesFields.LABEL.name());
                             occurrences = doc.get(InstancesFields.NUMBER.name());
-                            System.out.println((i+1)+" "+subject+"\t"+label+"\t"+occurrences);
-                            System.out.println("Properties:");
-                            IndexableField[] properties = doc.getFields(InstancesFields.PROPERTY.name());
-                            for(IndexableField property : properties) {
-                                String raw = property.stringValue();
-                                String[] split = raw.split("##");
-                                String name = split[0];
-                                String frequency = split[1];
-                                System.out.println("\t" + name + " - " + frequency);
-                            }
-                            System.out.println("_______________________________________");
+                            int cache = doc.getFields(InstancesFields.PROPERTY.name()).length;
+
+                            System.out.println((i+1)+" "+subject+"\t"+label+"\t"+occurrences + "\t" + cache);
                             System.out.println();
                         }
                     } catch(Exception e) {

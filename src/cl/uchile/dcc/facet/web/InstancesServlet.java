@@ -22,7 +22,7 @@ import java.nio.file.Paths;
 
 public class InstancesServlet extends HttpServlet {
 
-    private static final String instancesDir = "/home/jmoreno/bin/instances_v2.8";
+    //private static final String instancesDir = "/home/jmoreno/bin/instances_v3.1";
     private static final int DOCS_PER_PAGE = 20;
     private IndexSearcher searcher;
     private QueryParser queryParser;
@@ -30,6 +30,7 @@ public class InstancesServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         try {
+            String instancesDir = getServletContext().getInitParameter("InstancesDirectory");
             IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(instancesDir)));
             // open a searcher over the reader
             searcher = new IndexSearcher(reader);
@@ -55,12 +56,22 @@ public class InstancesServlet extends HttpServlet {
             if(queryParser == null) {
                 out.println("Fatal: Query Parser is null. Is init failing?");
             }
-            Query baseQuery = queryParser.parse(keyword);
+
+            BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
+            Query baseAutoCompleteQuery = null;
+            if(keyword.matches("[A-Za-z ]*"))
+                baseAutoCompleteQuery = queryParser.parse(keyword+"*");
+            Query baseLiteralQuery = queryParser.parse(keyword);
+
             DoubleValuesSource boostsSource = DoubleValuesSource.fromDoubleField(InstancesFields.BOOST.name());
             boostsSource = DoubleValuesSource.function(boostsSource, new ScoreBoostsOperator());
             boostsSource = DoubleValuesSource.scoringFunction(boostsSource, (Double src, Double score) -> src*score);
 
-            Query query = new FunctionScoreQuery(baseQuery, boostsSource);
+            if(baseAutoCompleteQuery != null)
+                queryBuilder.add(new FunctionScoreQuery(baseAutoCompleteQuery, boostsSource), BooleanClause.Occur.SHOULD);
+            queryBuilder.add(new FunctionScoreQuery(baseLiteralQuery, boostsSource), BooleanClause.Occur.SHOULD);
+            Query query = queryBuilder.build();
+
             TopDocs results = searcher.search(query, DOCS_PER_PAGE);
             ScoreDoc[] hits = results.scoreDocs;
             for(ScoreDoc hit : hits) {

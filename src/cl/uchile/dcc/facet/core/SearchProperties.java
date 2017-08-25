@@ -5,7 +5,6 @@ import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
@@ -85,14 +84,8 @@ public class SearchProperties {
                             subject = doc.get(PropertiesFields.P.name());
                             label = doc.get(PropertiesFields.LABEL.name());
                             occurrences = doc.get(PropertiesFields.NUMBER.name());
-                            System.out.println(subject+"\t"+label+"\t"+occurrences);
-                            IndexableField[] values = doc.getFields(PropertiesFields.VALUES.name());
-                            System.out.print("\t");
-                            for(IndexableField value : values) {
-                                String o = value.stringValue();
-                                System.out.print(o + " ");
-                            }
-                            System.out.println();
+                            String mPrime = doc.get(PropertiesFields.M_PRIME.name());
+                            System.out.println(subject+"\t"+label+"\t"+occurrences+"\t"+mPrime);
                             System.out.println("_______________________________________");
                             System.out.println();
                         }
