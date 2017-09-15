@@ -16,7 +16,7 @@
 
     <context-param>
         <param-name>ValuesDirectory</param-name>
-        <param-value>/home/jmoreno/bin/values_v3.6</param-value>
+        <param-value>/home/jmoreno/bin/values_v3.7</param-value>
     </context-param>
 
     <context-param>
@@ -38,6 +38,11 @@
         <servlet-name>Properties</servlet-name>
         <servlet-class>cl.uchile.dcc.facet.web.PropertiesServlet</servlet-class>
     </servlet>
+
+    <servlet>
+        <servlet-name>API</servlet-name>
+        <servlet-class>cl.uchile.dcc.facet.web.ApiServlet</servlet-class>
+    </servlet>
     
     <servlet-mapping>
         <servlet-name>SearchRDF</servlet-name>
@@ -52,6 +57,11 @@
     <servlet-mapping>
         <servlet-name>Properties</servlet-name>
         <url-pattern>/properties</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>API</servlet-name>
+        <url-pattern>/api</url-pattern>
     </servlet-mapping>
 
 </web-app>

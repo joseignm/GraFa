@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -46,6 +47,11 @@ public class SearchServlet extends DataServlet {
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("text/html; charset=UTF-8");
         PrintWriter out = response.getWriter();
+
+        long startTime = System.currentTimeMillis();
+        String serviceId = out.toString().split("@")[1];
+        System.err.println("Service Id " + serviceId + " started");
+        long threadStartTime = ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId());
 
         try {
             // Construct query from all specified filters
@@ -162,6 +168,7 @@ public class SearchServlet extends DataServlet {
                 }
             }
 
+            //System.err.println("Service "+serviceId+" read the cache if present at " + (System.currentTimeMillis()-startTime));
             // Getting the results
             TopDocs results;
             if(!isCached) {
@@ -202,6 +209,8 @@ public class SearchServlet extends DataServlet {
                     }
                 }
             }
+
+            //System.err.println("Service "+serviceId+" get all results and facets if not cache was found at " + (System.currentTimeMillis()-startTime));
             // Get most frequent properties
             List<Map.Entry<String, Integer>> propertiesList = propertiesMap.entrySet().stream()
                     .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
@@ -219,6 +228,10 @@ public class SearchServlet extends DataServlet {
             request.setAttribute("results", entries);
             request.setAttribute("properties", properties);
             request.setAttribute("total", results.totalHits);
+
+            System.err.println("Service "+serviceId+" forwarding to JSP at " + (System.currentTimeMillis()-startTime));
+            long threadTime = ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()) - threadStartTime;
+            System.err.println("Service "+serviceId+" total active time " + threadTime);
             getServletConfig().getServletContext().getRequestDispatcher("/results.jsp").forward(request,response);
         } catch (Exception e) {
             out.println("Error while performing query!");

@@ -2,7 +2,7 @@
 <project name="facet" basedir="." default="build-war">
     <property name="name" value="facet" />
     <property name="src" value="src" />
-    <property name="version" value="3.6" />
+    <property name="version" value="3.7" />
     <property name="dist" value="dist" />
     <property name="web.dir" value="web" />
 
@@ -258,6 +258,7 @@
             <zipfileset src="lib/lucene-analyzers-common-6.5.0.jar" />
             <zipfileset src="lib/lucene-core-6.5.0.jar" />
             <zipfileset src="lib/lucene-queryparser-6.5.0.jar" />
+            <zipfileset src="lib/javax.json-1.0.4.jar" />
         </jar>
     </target>
 
@@ -280,6 +281,30 @@
             <zipfileset src="lib/lucene-analyzers-common-6.5.0.jar" />
             <zipfileset src="lib/lucene-core-6.5.0.jar" />
             <zipfileset src="lib/lucene-queryparser-6.5.0.jar" />
+        </jar>
+    </target>
+
+    <target name="build-times" depends="clean,prepare">
+        <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
+            <classpath refid="classpath" />
+        </javac>
+
+        <jar jarfile="${dist}/times_v${version}.jar" basedir="out">
+            <manifest>
+                <attribute name="Main-Class" value="cl.uchile.dcc.facet.testing.RandomSearch" />
+            </manifest>
+            <!-- put common dependancies lower -->
+            <zipfileset src="lib/eclipse-rdf4j-2.2-onejar.jar" />
+            <zipfileset src="lib/commons-cli-1.1.jar" />
+            <zipfileset src="lib/commons-io-2.5.jar" />
+            <zipfileset src="lib/slf4j-api-1.7.25.jar" />
+            <zipfileset src="lib/slf4j-simple-1.7.25.jar" />
+            <zipfileset src="lib/nxparser-1.2.3.jar" />
+            <zipfileset src="lib/lucene-analyzers-common-6.5.0.jar" />
+            <zipfileset src="lib/lucene-core-6.5.0.jar" />
+            <zipfileset src="lib/lucene-queryparser-6.5.0.jar" />
+            <zipfileset src="lib/javax.json-1.0.4.jar" />
+            <zipfileset src="lib/jsoup-1.10.3.jar" />
         </jar>
     </target>
 

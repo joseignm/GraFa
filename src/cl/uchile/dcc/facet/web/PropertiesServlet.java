@@ -85,12 +85,9 @@ public class PropertiesServlet extends DataServlet {
             }
 
             if(hasCache) {
-                IndexableField[] valuesFromDoc = valuesDoc.getFields(ValuesField.VALUES.name());
-                for(IndexableField entry : valuesFromDoc) {
-                    String data = entry.stringValue();
-                    String label = getLabelFromSubject(data);
-                    values.put(data, label);
-                }
+                String jsonFromDoc = valuesDoc.get(ValuesField.VALUES.name());
+                out.print(jsonFromDoc);
+                return;
             } else {
                 System.err.println("Not cache found for values");
                 List<Query> queries = new ArrayList<>();

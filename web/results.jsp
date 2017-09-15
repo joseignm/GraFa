@@ -44,7 +44,8 @@
                         id : property,
                         name : "properties",
                         store : data,
-                        searchAttr : "name"
+                        searchAttr : "name",
+                        required: false
                     }, property);
                     var submitButton = document.getElementById(property+"-btn");
                     submitButton.style.display = "inline";

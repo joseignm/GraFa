@@ -3,11 +3,13 @@ package cl.uchile.dcc.facet.core;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.*;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
 
+import javax.json.*;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ public class IndexValues extends Indexer {
 
         IndexWriter writer = makeWriter(args[2], new StandardAnalyzer());
 
+        long start = System.currentTimeMillis();
         for(int i=0; i<instancesReader.maxDoc(); i++) {
             if(i%TICKS == 0) {
                 System.err.println(i+" instances processed...");
@@ -95,15 +98,33 @@ public class IndexValues extends Indexer {
                         if(!possibleValues.contains(value)) possibleValues.add(value);
                     }
                 }
+
+                JsonBuilderFactory factory = Json.createBuilderFactory(null);
+                JsonArrayBuilder main = factory.createArrayBuilder();
                 for(String value : possibleValues) {
-                    Field valueField = new StringField(ValuesField.VALUES.name(), value, Field.Store.YES);
-                    valuesDocument.add(valueField);
+                    JsonObjectBuilder valueObject = factory.createObjectBuilder();
+                    valueObject.add("id", property + "##" + value);
+                    String pr = getField(dataSearcher, value, DataFields.VALUE.name());
+                    if(pr == null) continue;
+                    valueObject.add("rank", Double.parseDouble(pr));
+                    String label = getField(dataSearcher, value, DataFields.LABEL.name());
+                    if(label == null) continue;
+                    valueObject.add("name", label);
+                    main.add(valueObject);
                 }
+                String jsonArray = main.build().toString();
+                Field dataField = new StoredField(ValuesField.VALUES.name(), jsonArray);
+                valuesDocument.add(dataField);
                 writer.addDocument(valuesDocument);
             }
 
-            System.err.println(instanceBase + "finished!");
+            System.err.println(instanceBase + " finished!");
         }
+        long totalTime = System.currentTimeMillis() - start;
+        long minutes = totalTime / 1000 / 60;
+        long hours = minutes / 60;
+        minutes = minutes % 60;
+        System.err.println("Total time: " + hours + " h " + minutes + " min");
         writer.close();
         System.err.println("Complete!");
     }

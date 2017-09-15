@@ -52,7 +52,7 @@
 
       <div class="row">
           <div class="col-md-6 col-md-offset-3 text-center">
-              <h1>Faceted Navegation</h1>
+              <h1>Faceted Navigation</h1>
               <h3>Search</h3>
           </div>
       </div>
