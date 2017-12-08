@@ -7,6 +7,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import java.io.*;
 import java.nio.file.Paths;
+import java.util.Properties;
 import java.util.zip.GZIPInputStream;
 
 public class UpdateBoosts {
@@ -20,9 +21,16 @@ public class UpdateBoosts {
             System.out.println("USAGE: Rank_File Old_Lucene_Dir New_Lucene_Dir");
         }
 
+        long startTime = System.currentTimeMillis();
         String ranksFile = args[0];
         String oldLuceneDir = args[1];
         String newLuceneDir = args[2];
+
+        Properties properties = new Properties();
+        InputStream input = new FileInputStream("facet.properties");
+        properties.load(input);
+
+        String[] languages = properties.getProperty("languages").split(",");
 
         IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(oldLuceneDir)));
         IndexWriterConfig iwc = new IndexWriterConfig(new EnglishAnalyzer());
@@ -60,50 +68,67 @@ public class UpdateBoosts {
 
             Document oldDocument = reader.document(doc);
             String subject = oldDocument.get(DataFields.SUBJECT.name());
-            String label = oldDocument.get(DataFields.LABEL.name());
-            String description = oldDocument.get(DataFields.DESCRIPTION.name());
-            String alt = oldDocument.get(DataFields.ALT_LABEL.name());
-            String[] instances = oldDocument.getValues(DataFields.INSTANCE.name());
-            String[] ps = oldDocument.getValues(DataFields.P.name());
+            String image = oldDocument.get(DataFields.IMAGE.name());
+            String[] instances = oldDocument.getValues(DataFields.TYPE.name());
+            String[] ps = oldDocument.getValues(DataFields.PROPERTY.name());
             String[] pos = oldDocument.getValues(DataFields.PO.name());
 
             Document newDocument = new Document();
             Field subjectField = new StringField(DataFields.SUBJECT.name(), subject, Field.Store.YES);
             newDocument.add(subjectField);
-            if(label != null) {
-                Field labelField = new TextField(DataFields.LABEL.name(), label, Field.Store.YES);
-                newDocument.add(labelField);
-            }
-            if(description != null) {
-                Field descriptionField = new TextField(DataFields.DESCRIPTION.name(), description, Field.Store.YES);
-                newDocument.add(descriptionField);
-            }
-            if(alt != null) {
-                Field altField = new TextField(DataFields.ALT_LABEL.name(), alt, Field.Store.YES);
-                newDocument.add(altField);
+            if(image != null) {
+                Field imageField = new StringField(DataFields.IMAGE.name(), image, Field.Store.YES);
+                newDocument.add(imageField);
             }
             for(String instance : instances) {
-                Field instanceField = new StringField(DataFields.INSTANCE.name(), instance, Field.Store.YES);
+                Field instanceField = new StringField(DataFields.TYPE.name(), instance, Field.Store.YES);
                 newDocument.add(instanceField);
             }
             for(String p : ps) {
-                Field pField = new StringField(DataFields.P.name(), p, Field.Store.YES);
+                Field pField = new StringField(DataFields.PROPERTY.name(), p, Field.Store.YES);
                 newDocument.add(pField);
             }
             for(String po : pos) {
                 Field poField = new StringField(DataFields.PO.name(), po, Field.Store.YES);
                 newDocument.add(poField);
             }
-            Field boostsField = new DoubleDocValuesField(DataFields.BOOSTS.name(), rank);
+            Field boostsField = new DoubleDocValuesField(DataFields.RANK.name(), rank);
             newDocument.add(boostsField);
-            Field storedField = new StoredField(DataFields.VALUE.name(), rank);
+            Field storedField = new StoredField(DataFields.RANK_STORED.name(), rank);
             newDocument.add(storedField);
+
+            // LABELS
+            for(String lang : languages) {
+                String labelFieldName = DataFields.LABEL.name() + "-" + lang;
+                String altLabelFieldName = DataFields.ALT_LABEL.name() + "-" + lang;
+                String descriptionFieldName = DataFields.DESCRIPTION.name() + "-" + lang;
+
+                String[] labels = oldDocument.getValues(labelFieldName);
+                String[] altLabels = oldDocument.getValues(altLabelFieldName);
+                String[] descriptions = oldDocument.getValues(descriptionFieldName);
+
+                for(String label: labels) {
+                    Field labelField = new TextField(labelFieldName, label, Field.Store.YES);
+                    newDocument.add(labelField);
+                }
+                for(String altLabel: altLabels) {
+                    Field altLabelField = new TextField(altLabelFieldName, altLabel, Field.Store.YES);
+                    newDocument.add(altLabelField);
+                }
+                for(String description : descriptions) {
+                    Field descriptionField = new TextField(descriptionFieldName, description, Field.Store.YES);
+                    newDocument.add(descriptionField);
+                }
+            }
 
             writer.addDocument(newDocument);
             read++;
         }
 
         writer.close();
+
+        long totalTime = System.currentTimeMillis() - startTime;
+        System.err.println("Total time: " + totalTime + " ms");
 
         System.out.println("Min value: " + min);
         System.out.println("Max value: " + max);

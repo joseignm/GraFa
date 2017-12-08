@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 public class ApiServlet extends DataServlet {
-
+/*
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("text/html; charset=UTF-8");
@@ -28,13 +28,13 @@ public class ApiServlet extends DataServlet {
             StandardQueryParser queryParser = new StandardQueryParser();
             Query query = queryParser.parse(queryText, DataFields.SUBJECT.name());
 
-            TopDocs results = searcher.search(query, reader.numDocs());
+            TopDocs results = dataSearcher.search(query, dataReader.numDocs());
             ScoreDoc[] hits = results.scoreDocs;
             JsonBuilderFactory factory = Json.createBuilderFactory(null);
             JsonArrayBuilder resultsArray = factory.createArrayBuilder();
 
             for(ScoreDoc hit : hits) {
-                Document document = searcher.doc(hit.doc);
+                Document document = dataSearcher.doc(hit.doc);
                 JsonObjectBuilder hitObject = factory.createObjectBuilder();
 
                 String id = document.get(DataFields.SUBJECT.name());
@@ -80,5 +80,5 @@ public class ApiServlet extends DataServlet {
         } catch(Exception e) {
             e.printStackTrace(out);
         }
-    }
+    }*/
 }

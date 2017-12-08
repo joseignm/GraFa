@@ -6,22 +6,32 @@
 
     <context-param>
         <param-name>IndexDirectory</param-name>
-        <param-value>/home/jmoreno/bin/index_v2.6/</param-value>
+        <param-value>/home/jmoreno/indexes/data_v4/</param-value>
     </context-param>
 
     <context-param>
         <param-name>InstancesDirectory</param-name>
-        <param-value>/home/jmoreno/bin/instances_v3.5</param-value>
+        <param-value>/home/jmoreno/indexes/types_v4</param-value>
     </context-param>
 
     <context-param>
         <param-name>ValuesDirectory</param-name>
-        <param-value>/home/jmoreno/bin/values_v3.7</param-value>
+        <param-value>/home/jmoreno/indexes/values_v4</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>LabelsDirectory</param-name>
+        <param-value>/home/jmoreno/indexes/label_v4</param-value>
     </context-param>
 
     <context-param>
         <param-name>InstancesCode</param-name>
         <param-value>P31</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>SubjectPrefix</param-name>
+        <param-value>Q</param-value>
     </context-param>
 
     <servlet>

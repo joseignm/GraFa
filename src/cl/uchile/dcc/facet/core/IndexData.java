@@ -3,12 +3,12 @@ package cl.uchile.dcc.facet.core;
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.RDFFormat;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 
 public class IndexData extends Indexer {
@@ -23,10 +23,12 @@ public class IndexData extends Indexer {
             System.exit(0);
         }
 
+        long startTime = System.currentTimeMillis();
+
         String filename = args[0];
         String outputDir = args[1];
 
-        Analyzer analyzer = new EnglishAnalyzer();
+        Analyzer analyzer = new StandardAnalyzer();
         IndexWriter writer = makeWriter(outputDir, analyzer);
 
         InputStream in = new FileInputStream(filename);
@@ -50,6 +52,9 @@ public class IndexData extends Indexer {
             in.close();
         }
         handler.finish();
+
+        long totalTime = System.currentTimeMillis() - startTime;
+        System.err.println("Total time: " + totalTime + " ms");
         System.err.println("Parsing completed!");
     }
 }

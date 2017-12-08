@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="facet" basedir="." default="build-war">
-    <property name="name" value="facet" />
+<project name="grafa" basedir="." default="webapp">
+    <property name="name" value="grafa" />
     <property name="src" value="src" />
-    <property name="version" value="3.7" />
+    <property name="version" value="1.0" />
     <property name="dist" value="dist" />
     <property name="web.dir" value="web" />
 
@@ -18,7 +18,7 @@
         <mkdir dir="dist" />
     </target>
 
-    <target name="build-index" depends="clean,prepare">
+    <target name="index-data" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
@@ -40,7 +40,7 @@
         </jar>
     </target>
 
-    <target name="build-rank" depends="clean,prepare">
+    <target name="rank-data" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
@@ -62,7 +62,7 @@
         </jar>
     </target>
 
-    <target name="build-boosts" depends="clean,prepare">
+    <target name="update-boosts" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
@@ -84,7 +84,7 @@
         </jar>
     </target>
 
-    <target name="build-properties" depends="clean,prepare">
+    <target name="index-properties" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
@@ -106,7 +106,7 @@
         </jar>
     </target>
 
-    <target name="build-instances" depends="clean,prepare">
+    <target name="index-instances" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
@@ -129,7 +129,7 @@
         </jar>
     </target>
 
-    <target name="build-searcher" depends="clean,prepare">
+    <target name="search-data" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
@@ -151,12 +151,12 @@
         </jar>
     </target>
 
-    <target name="build-prop-getter" depends="clean,prepare">
+    <target name="search-properties" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
 
-        <jar jarfile="${dist}/prop-getter_v${version}.jar" basedir="out">
+        <jar jarfile="${dist}/search-property_v${version}.jar" basedir="out">
             <manifest>
                 <attribute name="Main-Class" value="cl.uchile.dcc.facet.core.SearchProperties" />
             </manifest>
@@ -173,7 +173,7 @@
         </jar>
     </target>
 
-    <target name="build-statistics" depends="clean,prepare">
+    <target name="statistics" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
@@ -195,12 +195,12 @@
         </jar>
     </target>
 
-    <target name="build-ins-getter" depends="clean,prepare">
+    <target name="search-instances" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
 
-        <jar jarfile="${dist}/ins-getter_v${version}.jar" basedir="out">
+        <jar jarfile="${dist}/search-instance_v${version}.jar" basedir="out">
             <manifest>
                 <attribute name="Main-Class" value="cl.uchile.dcc.facet.core.SearchInstances" />
             </manifest>
@@ -239,7 +239,7 @@
         </jar>
     </target>
 
-    <target name="build-values" depends="clean,prepare">
+    <target name="index-values" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
@@ -262,12 +262,12 @@
         </jar>
     </target>
 
-    <target name="build-val-getter" depends="clean,prepare">
+    <target name="search-values" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
 
-        <jar jarfile="${dist}/val-getter_v${version}.jar" basedir="out">
+        <jar jarfile="${dist}/search-value_v${version}.jar" basedir="out">
             <manifest>
                 <attribute name="Main-Class" value="cl.uchile.dcc.facet.core.SearchValues" />
             </manifest>
@@ -284,12 +284,12 @@
         </jar>
     </target>
 
-    <target name="build-times" depends="clean,prepare">
+    <target name="random-search" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
 
-        <jar jarfile="${dist}/times_v${version}.jar" basedir="out">
+        <jar jarfile="${dist}/search-stats_v${version}.jar" basedir="out">
             <manifest>
                 <attribute name="Main-Class" value="cl.uchile.dcc.facet.testing.RandomSearch" />
             </manifest>
@@ -308,12 +308,12 @@
         </jar>
     </target>
 
-    <target name="build-war" depends="clean,prepare">
+    <target name="webapp" depends="clean,prepare">
         <javac destdir="out" srcdir="src" source="1.8" target="1.8" debug="true" debuglevel="lines,source">
             <classpath refid="classpath" />
         </javac>
 
-        <war destfile="${dist}/facet_v${version}.war" webxml="${web.dir}/WEB-INF/web.xml">
+        <war destfile="${dist}/grafa_v${version}.war" webxml="${web.dir}/WEB-INF/web.xml">
             <fileset dir="web" />
             <lib dir="${web.dir}/WEB-INF/lib" />
             <classes dir="out" />
@@ -322,12 +322,12 @@
 
     <target name="clean">
         <delete dir="out" />
-        <delete>
+        <!--delete>
             <fileset dir="dist">
                 <include name="*.jar" />
                 <include name="*.war" />
             </fileset>
-        </delete>
+        </delete-->
     </target>
 
 </project>

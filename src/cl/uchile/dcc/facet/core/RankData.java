@@ -3,15 +3,16 @@ package cl.uchile.dcc.facet.core;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.store.FSDirectory;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFParser;
+import org.eclipse.rdf4j.rio.Rio;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class RankData {
@@ -70,17 +71,17 @@ public class RankData {
     }
 
     public static void main(String[] args) throws IOException {
-        final int TICKS = 1000000;
-
         System.out.println("RankData");
 
-        if(args.length != 2) {
-            System.out.println("USAGE Lucene_Index_Dir Output_GZip");
+        if(args.length != 3) {
+            System.out.println("USAGE Lucene_Index_Dir Input_NT_File Output_GZip");
             System.exit(0);
         }
 
+        long startTime = System.currentTimeMillis();
         String dataDirectory = args[0];
-        String output = args[1];
+        String triplesFile = args[1];
+        String output = args[2];
 
         // INIT INDEX READER
         IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(dataDirectory)));
@@ -101,24 +102,28 @@ public class RankData {
         System.err.println("Creating graph in memory...");
         System.err.println("This may take a while...");
         int[][] graph = new int[graphLength][];
-        for(int i=0; i<graphLength; i++) {
-            if(i%TICKS == 0) {
-                System.err.println(i + "/" + graphLength + " nodes processed");
-            }
-            Document doc = reader.document(i);
-            IndexableField[] pos = doc.getFields(DataFields.PO.name());
-            List<Integer> outLinksList = new ArrayList<>();
-            for(IndexableField po : pos) {
-                String reference = po.stringValue().split("##")[1];
-                if(map.containsKey(reference)) {
-                    outLinksList.add(map.get(reference));
-                }
-            }
-            if(!outLinksList.isEmpty()) {
-                graph[i] = outLinksList.stream().mapToInt(a -> a).toArray();
-            }
+
+        InputStream in = new FileInputStream(triplesFile);
+        if(triplesFile.endsWith(".gz")){
+            System.err.println("Input file is gzipped.");
+            in = new GZIPInputStream(in);
         }
-        reader.close();
+        Reader isr = new InputStreamReader(in, "UTF-8");
+
+        RDFParser parser = Rio.createParser(RDFFormat.NTRIPLES);
+        RankHandler handler = new RankHandler(graph, map);
+        parser.setRDFHandler(handler);
+
+        System.err.println("Parsing file...");
+        System.err.println("This may take a while...");
+        try {
+            parser.parse(isr, "");
+        } catch (Exception e) {
+            throw new IOException();
+        } finally {
+            in.close();
+        }
+        handler.finish();
         System.err.println("Graph loaded");
 
         // RANK GRAPH
@@ -139,5 +144,8 @@ public class RankData {
         System.err.println("Finished writing ranks! Wrote "+written+" ranks.");
 
         pw.close();
+
+        long totalTime = System.currentTimeMillis() - startTime;
+        System.err.println("Total time: " + totalTime + " ms");
     }
 }
