@@ -48,4 +48,17 @@ abstract class Indexer {
         Document doc = searcher.doc(hits[0].doc);
         return doc.get(field);
     }
+
+    static String[] getFieldAll(IndexSearcher searcher, String subject, String field) throws IOException {
+        Term term = new Term(DataFields.SUBJECT.name(), subject);
+        Query query = new TermQuery(term);
+        TopDocs results = searcher.search(query, 1);
+        if(results.totalHits < 1) {
+            // System.err.println("WARN: Subject "+subject+" does not exist or was not indexed.");
+            return null;
+        }
+        ScoreDoc[] hits = results.scoreDocs;
+        Document doc = searcher.doc(hits[0].doc);
+        return doc.getValues(field);
+    }
 }

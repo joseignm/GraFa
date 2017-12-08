@@ -10,10 +10,13 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
 
 import javax.json.*;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class IndexValues extends Indexer {
 
@@ -40,6 +43,12 @@ public class IndexValues extends Indexer {
 
         IndexWriter writer = makeWriter(args[2], new StandardAnalyzer());
 
+        Properties configFile = new Properties();
+        InputStream input = new FileInputStream("facet.properties");
+        configFile.load(input);
+        String[] languages = configFile.getProperty("languages").split(",");
+        String entityPrefix = configFile.getProperty("entityPrefix");
+
         long start = System.currentTimeMillis();
         for(int i=0; i<instancesReader.maxDoc(); i++) {
             if(i%TICKS == 0) {
@@ -51,7 +60,7 @@ public class IndexValues extends Indexer {
             if(propertiesList == null || propertiesList.length == 0) continue;
 
             // Cache all values for a property
-            String instanceBase = instancesDoc.get(InstancesFields.Q.name());
+            String instanceBase = instancesDoc.get(InstancesFields.ID.name());
             System.err.println(instanceBase+" need to cache all its properties");
 
             String[] queryParts = instanceBase.split("\\|\\|");
@@ -60,7 +69,7 @@ public class IndexValues extends Indexer {
                 continue;
             }
             List<Query> queries = new ArrayList<>();
-            queries.add(new TermQuery(new Term(DataFields.INSTANCE.name(), queryParts[0])));
+            queries.add(new TermQuery(new Term(DataFields.TYPE.name(), queryParts[0])));
 
             if(queryParts.length > 1) {
                 for(int j=1; j<queryParts.length; j++) {
@@ -76,12 +85,12 @@ public class IndexValues extends Indexer {
                 for(Query query : queries) {
                     queryBuilder.add(query, BooleanClause.Occur.MUST);
                 }
-                queryBuilder.add(new TermQuery(new Term(DataFields.P.name(), property)), BooleanClause.Occur.MUST);
+                queryBuilder.add(new TermQuery(new Term(DataFields.PROPERTY.name(), property)), BooleanClause.Occur.MUST);
                 Query finalQuery = queryBuilder.build();
 
                 Document valuesDocument = new Document();
                 String baseCode = instanceBase + "||" + property;
-                Field baseField = new StringField(ValuesField.BASE.name(), baseCode, Field.Store.YES);
+                Field baseField = new StringField(ValuesFields.BASE.name(), baseCode, Field.Store.YES);
                 valuesDocument.add(baseField);
 
                 TopDocs results = dataSearcher.search(finalQuery, dataReader.numDocs());
@@ -94,7 +103,7 @@ public class IndexValues extends Indexer {
                         String[] rawPO = po.stringValue().split("##");
                         if(!property.equals(rawPO[0])) continue;
                         String value = rawPO[1];
-                        if(!value.startsWith("Q")) continue;
+                        if(!value.startsWith(entityPrefix)) continue;
                         if(!possibleValues.contains(value)) possibleValues.add(value);
                     }
                 }
@@ -104,16 +113,18 @@ public class IndexValues extends Indexer {
                 for(String value : possibleValues) {
                     JsonObjectBuilder valueObject = factory.createObjectBuilder();
                     valueObject.add("id", property + "##" + value);
-                    String pr = getField(dataSearcher, value, DataFields.VALUE.name());
+                    String pr = getField(dataSearcher, value, DataFields.RANK_STORED.name());
                     if(pr == null) continue;
                     valueObject.add("rank", Double.parseDouble(pr));
-                    String label = getField(dataSearcher, value, DataFields.LABEL.name());
-                    if(label == null) continue;
-                    valueObject.add("name", label);
+                    for(String language : languages) {
+                        String label = getField(dataSearcher, value, DataFields.LABEL.name()+"-"+language);
+                        if (label == null) label = value;
+                        valueObject.add("name-"+language, label);
+                    }
                     main.add(valueObject);
                 }
                 String jsonArray = main.build().toString();
-                Field dataField = new StoredField(ValuesField.VALUES.name(), jsonArray);
+                Field dataField = new StoredField(ValuesFields.VALUES.name(), jsonArray);
                 valuesDocument.add(dataField);
                 writer.addDocument(valuesDocument);
             }

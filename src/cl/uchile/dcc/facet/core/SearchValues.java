@@ -3,7 +3,6 @@ package cl.uchile.dcc.facet.core;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
@@ -55,7 +54,7 @@ public class SearchValues {
                 if(!line.isEmpty()){
                     try{
                         // parse query
-                        Query query = new WildcardQuery(new Term(ValuesField.BASE.name(), line));
+                        Query query = new WildcardQuery(new Term(ValuesFields.BASE.name(), line));
                         // get hits
                         TopDocs results = searcher.search(query, DOCS_PER_PAGE);
                         ScoreDoc[] hits = results.scoreDocs;
@@ -67,12 +66,11 @@ public class SearchValues {
 
                         for(int i=0; i<hits.length; i++) {
                             Document doc = searcher.doc(hits[i].doc);
-                            String base = doc.get(ValuesField.BASE.name());
-                            IndexableField[] values = doc.getFields(ValuesField.VALUES.name());
-                            int number = values.length;
-                            String example = values[0].stringValue();
+                            String base = doc.get(ValuesFields.BASE.name());
+                            String values = doc.get(ValuesFields.VALUES.name());
+                            String example = values.substring(0, Math.min(100, values.length()));
 
-                            System.out.println((i+1)+" "+base+"\t"+number+"\t"+example);
+                            System.out.println((i+1)+" "+base+"\t"+example);
                             System.out.println();
                         }
                     } catch(Exception e) {

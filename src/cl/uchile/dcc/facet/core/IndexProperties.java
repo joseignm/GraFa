@@ -101,7 +101,7 @@ public class IndexProperties extends Indexer {
         System.out.println("Computing m' - Total time: " + totalTime + " s");
 
         // SECOND PART: Create index for all properties
-        Terms terms = fields.terms(DataFields.P.name());
+        Terms terms = fields.terms(DataFields.PROPERTY.name());
         TermsEnum termsEnum = terms.iterator();
         String propDir = args[1];
         IndexWriter writer = makeWriter(propDir, analyzer);
@@ -115,7 +115,7 @@ public class IndexProperties extends Indexer {
             // Get the label of the property
             String p = text.utf8ToString();
             String label = getField(searcher, p, DataFields.LABEL.name());
-            Term term = new Term(DataFields.P.name(), p);
+            Term term = new Term(DataFields.PROPERTY.name(), p);
             long occurrences = reader.docFreq(term);
             if(label == null) continue;
             // Create document with P and Label
@@ -145,7 +145,7 @@ public class IndexProperties extends Indexer {
             String instanceOfCode = properties.getProperty("instanceOf");
             if(!p.equals(instanceOfCode)) {
                 Map<String, Integer> valuesMap = new HashMap<>();
-                Query query = new TermQuery(new Term(DataFields.P.name(), p));
+                Query query = new TermQuery(new Term(DataFields.PROPERTY.name(), p));
                 TopDocs results = searcher.search(query, reader.maxDoc());
                 ScoreDoc[] hits = results.scoreDocs;
                 for(ScoreDoc hit : hits) {

@@ -7,13 +7,25 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Search Results</title>
+    <% String lang = request.getParameter("lang");
+        if(lang==null) lang = "en"; %>
+    <% if(lang.equals("es")) { %>
+    <title>GraFa - Resultados</title>
+    <% } else { %>
+    <title>GraFa - Results</title>
+    <% } %>
 
+    <link rel="shortcut icon" href="css/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="css/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.12.1/dijit/themes/claro/claro.css">
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="css/styles.css">
 
     <!-- Bootstrap JS -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -31,6 +43,7 @@
 <script>
     function showPropertyValues(caller) {
         var keyword = document.getElementById("keyword")==null ? "" : document.getElementById("keyword").value;
+        var lang = document.getElementById("lang")==null ? "" : document.getElementById("lang").value;
         var instance = document.getElementById("instance").value;
         var property = caller.value;
         var selectedArray = document.getElementsByName("properties");
@@ -54,11 +67,20 @@
             }
         };
         var url = "properties?keyword="+keyword+"&instance="+instance+"&property="+property;
+        if(lang !== "") {
+            url = url + "&lang=" + lang;
+        }
         for(var i=0; i<selectedArray.length; i++) {
             if(selectedArray[i].type == "hidden") {
                 url = url + "&selected=" + encodeURIComponent(selectedArray[i].value);
             }
         }
+        var emptyDiv = document.getElementById(property);
+        <% if(lang.equals("es")) { %>
+        emptyDiv.innerHTML = "<i class='fa fa-circle-o-notch fa-spin'></i> Cargando...";
+        <% } else { %>
+        emptyDiv.innerHTML = "<i class='fa fa-circle-o-notch fa-spin'></i> Loading...";
+        <% } %>
         request.open("GET", url, true);
         request.send();
     }
@@ -68,10 +90,28 @@
         document.getElementById(property).disabled = true;
         document.getElementById("form").submit();
     }
+
+    function changeLanguage(code) {
+        var newSearch = location.search;
+        if(newSearch.indexOf("?") === -1) {
+            newSearch = "?lang=" + code;
+        } else if(newSearch.match(/lang=[^&$]*/i)) {
+            newSearch = newSearch.replace(/lang=[^&$]*/i, 'lang='+code)
+        } else {
+            newSearch += "&lang=" + code;
+        }
+        location.search = newSearch;
+    }
 </script>
 
 <% if(request.getAttribute("results")==null) { %>
-<div class="alert alert-danger"> <strong>Error!</strong> Query triggered an exception. </div>
+<div class="alert alert-danger">
+    <% if(lang.equals("es")) { %>
+    <strong>Error</strong> La consulta causó una excepción.
+    <% } else { %>
+    <strong>Error!</strong> Query triggered an exception.
+    <% } %>
+</div>
 <% } else {
     List<Entry> entries = (List<Entry>) request.getAttribute("results");
     List<CodeNameValue> properties = (List<CodeNameValue>) request.getAttribute("properties");
@@ -81,23 +121,60 @@
 
 <div class="container-fluid">
 <div class="row">
-    <div class="col-md-12"> <h1>Results</h1> </div>
+    <div class="col-md-3">
+        <a href="${pageContext.request.contextPath}/?lang=<%=lang%>">
+            <img src="css/logoBM.png" class="pull-left image-margin" style="width: 200px; height: 99px">
+        </a>
+    </div>
+    <div class="col-md-7">
+        <% if(lang.equals("es")) { %>
+        <h1>Resultados</h1>
+        <% } else { %>
+        <h1>Results</h1>
+        <% } %>
+    </div>
+    <div class="col-md-2 text-right">
+        <div class="dropdown-right">
+            <button aria-expanded="false" data-toggle="dropdown" type="button" class="btn btn-default dropdown-toggle"><span class="glyphicon glyphicon-globe"></span> Language
+                <span class="caret"></span></button>
+            <ul class="dropdown-menu dropdown-menu-right">
+                <li><a href="#" onclick="changeLanguage('en')">English</a></li>
+                <li><a href="#" onclick="changeLanguage('es')">Español</a></li>
+            </ul>
+        </div>
+    </div>
 </div>
 <div class="row">
 <div class="col-md-3">
-<h4>Current Query:</h4>
+    <% if(lang.equals("es")) { %>
+    <h4>Buscando por:</h4>
+    <% } else { %>
+    <h4>Current Query:</h4>
+    <% } %>
 
 <form id="form" action="search" method="get">
 <% if(request.getParameter("keyword")!=null && !request.getParameter("keyword").isEmpty()) {%>
     <div class="form-group">
+        <% if(lang.equals("es")) { %>
+        <label for="keyword">Palabra clave:</label>
+        <% } else { %>
         <label for="keyword">Keyword:</label>
+        <% } %>
         <input readonly type="text" class="form-control input-sm" id="keyword" name="keyword" value="<%= request.getParameter("keyword").trim() %>">
     </div>
 <% } %>
 
+<% if(request.getParameter("lang")!=null && !request.getParameter("lang").isEmpty()) {%>
+    <input readonly type="hidden" id="lang" name="lang" value="<%= request.getParameter("lang").trim() %>">
+<% } %>
+
 <% if(request.getAttribute("type")!=null) {%>
     <div class="form-group">
+        <% if(lang.equals("es")) { %>
+        <label for="ins-input">Tipo:</label>
+        <% } else { %>
         <label for="ins-input">Type:</label>
+        <% } %>
         <input readonly type="text" class="form-control input-sm" id="ins-input" value="<%= request.getAttribute("type").toString().trim() %>">
     </div>
 
@@ -121,7 +198,12 @@
         <% } %>
     <% } %>
 
+    <br>
+    <% if(lang.equals("es")) { %>
+    <h4>Propiedades:</h4>
+    <% } else { %>
     <h4>Properties:</h4>
+    <% } %>
     <% for(CodeNameValue property : properties) {%>
         <button type="button" class="btn btn-default btn-xs" value="<%= property.getCode() %>" onclick="showPropertyValues(this)">
             <span class="glyphicon glyphicon-plus"></span>
@@ -135,28 +217,24 @@
     </form>
 </div>
 <div class="col-md-9">
+    <% if(lang.equals("es")) { %>
+    <h5>Coincidencias totales: <%= request.getAttribute("total") %> </h5>
+    <h5>Mostrando primeros <%= entries.size() %> resultados</h5>
+    <% } else { %>
     <h5>Matching documents: <%= request.getAttribute("total") %> </h5>
     <h5>Showing top <%= entries.size() %> results</h5>
-
-    <table class="table table-hover">
-        <thead><tr>
-            <th class="col-md-2">Name</th>
-            <th class="col-md-4">Alternative Names</th>
-            <th class="col-md-6">Description</th>
-        </tr></thead>
-        <tbody>
-        <% for(Entry entry : entries) {%>
-            <tr>
-                <td> <a href="http://www.wikidata.org/wiki/<%= entry.getSubject() %>">
-                    <%= entry.getLabel() %>
-                </a></td>
-                <td> <%= entry.getAltLabels() %></td>
-                <td> <%= entry.getDescription() %></td>
-            </tr>
+    <% } %>
+    <% for(Entry entry : entries) {%>
+    <div class="panel panel-default" style="margin-top: 10px; margin-bottom: 10px">
+        <div class="panel-body">
+        <% if(entry.getImage() != null) {%>
+            <img src="<%= entry.getImage()%>" class="pull-right image-margin image-entry">
         <% } %>
-        </tbody>
-    </table>
-</div>
+            <h3><a href="http://www.wikidata.org/wiki/<%=entry.getSubject()%>"><%=entry.getLabel()%></a> <small><%=entry.getAltLabels()%></small></h3>
+            <p><%=entry.getDescription()%></p>
+        </div>
+    </div>
+    <% } %>
 </div>
 </div>
 <% } %>

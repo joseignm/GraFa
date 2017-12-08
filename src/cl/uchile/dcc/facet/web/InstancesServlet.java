@@ -3,12 +3,13 @@ package cl.uchile.dcc.facet.web;
 import cl.uchile.dcc.facet.core.InstancesFields;
 import cl.uchile.dcc.facet.core.ScoreBoostsOperator;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.queries.function.FunctionScoreQuery;
-import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
 
@@ -19,13 +20,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
 public class InstancesServlet extends HttpServlet {
 
-    //private static final String instancesDir = "/home/jmoreno/bin/instances_v3.1";
-    private static final int DOCS_PER_PAGE = 20;
+    private static final int DOCS_PER_PAGE = 15;
     private IndexSearcher searcher;
-    private QueryParser queryParser;
 
     @Override
     public void init() throws ServletException {
@@ -34,8 +34,6 @@ public class InstancesServlet extends HttpServlet {
             IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(instancesDir)));
             // open a searcher over the reader
             searcher = new IndexSearcher(reader);
-            Analyzer analyzer = new EnglishAnalyzer();
-            queryParser = new QueryParser(InstancesFields.LABEL.name(), analyzer);
         } catch (IOException e) {
             System.err.println("FATAL: Cannot open Lucene folder");
             throw new ServletException();
@@ -47,23 +45,36 @@ public class InstancesServlet extends HttpServlet {
         response.setContentType("text/html; charset=UTF-8");
         PrintWriter out = response.getWriter();
 
+        String lang = request.getParameter("lang");
+        if(lang == null) lang = "en";
+        String labelFieldName = InstancesFields.LABEL.name() + "-" + lang;
+        String altLabelFieldName = InstancesFields.ALT_LABEL.name() + "-" + lang;
+
         try {
             String keyword = request.getParameter("keyword");
             if(keyword == null) {
                 out.println("No keyword provided");
                 return;
             }
-            if(queryParser == null) {
-                out.println("Fatal: Query Parser is null. Is init failing?");
-            }
+
+            Analyzer analyzer = new StandardAnalyzer();
+            HashMap<String,Float> boostsMap = new HashMap<>();
+            boostsMap.put(altLabelFieldName, 1f);
+            boostsMap.put(labelFieldName, 1f);
+
+            MultiFieldQueryParser queryParser = new MultiFieldQueryParser(
+                    new String[] {labelFieldName, altLabelFieldName},
+                    analyzer, boostsMap);
 
             BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
             Query baseAutoCompleteQuery = null;
-            if(keyword.matches("[A-Za-z ]*"))
-                baseAutoCompleteQuery = queryParser.parse(keyword+"*");
+            if(keyword.matches("[A-Za-z ]*")) {
+                keyword = keyword.trim();
+                baseAutoCompleteQuery = queryParser.parse(keyword + "*");
+            }
             Query baseLiteralQuery = queryParser.parse(keyword);
 
-            DoubleValuesSource boostsSource = DoubleValuesSource.fromDoubleField(InstancesFields.BOOST.name());
+            DoubleValuesSource boostsSource = DoubleValuesSource.fromDoubleField(InstancesFields.RANK.name());
             boostsSource = DoubleValuesSource.function(boostsSource, new ScoreBoostsOperator());
             boostsSource = DoubleValuesSource.scoringFunction(boostsSource, (Double src, Double score) -> src*score);
 
@@ -76,10 +87,22 @@ public class InstancesServlet extends HttpServlet {
             ScoreDoc[] hits = results.scoreDocs;
             for(ScoreDoc hit : hits) {
                 Document doc = searcher.doc(hit.doc);
-                String label = doc.get(InstancesFields.LABEL.name());
-                String q = doc.get(InstancesFields.Q.name());
-                String occurrences = doc.get(InstancesFields.NUMBER.name());
-                out.println("<option code='"+q+"'>"+label+" ("+occurrences+")</option>");
+                String label = doc.get(labelFieldName);
+                String q = doc.get(InstancesFields.ID.name());
+                if(label==null) label = q;
+                String occurrences = doc.get(InstancesFields.FREQ_STORED.name());
+                if(label.contains(keyword)) {
+                    out.println("<option code='" + q + "'>" + label + " (" + occurrences + ")</option>");
+                    continue;
+                }
+                IndexableField[] altLabels = doc.getFields(altLabelFieldName);
+                for(IndexableField altLabel : altLabels) {
+                    String name = altLabel.stringValue();
+                    if(name.contains(keyword)) {
+                        out.println("<option code='" + q + "'>" + name + " (" + occurrences + ")</option>");
+                        break;
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace(out);

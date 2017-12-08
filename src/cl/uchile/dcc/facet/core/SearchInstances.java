@@ -1,12 +1,12 @@
 package cl.uchile.dcc.facet.core;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
 
@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
 public class SearchInstances {
 
@@ -22,23 +23,35 @@ public class SearchInstances {
         System.out.println("Search instances from the data to get its Subject");
         System.out.println();
 
-        if(args.length!=1) {
-            System.err.println("USAGE: Instances_Indexes_Folder");
+        if(args.length!=2) {
+            System.err.println("USAGE: Instances_Indexes_Folder Language");
             System.exit(0);
         }
         String insDir = args[0];
+        String lang = args[1];
         final int DOCS_PER_PAGE = 10;
+
+        String labelFieldName = InstancesFields.LABEL.name() + "-" + lang;
+        String altLabelFieldName = InstancesFields.ALT_LABEL.name() + "-" + lang;
 
         // open a reader for the directory
         IndexReader insReader = DirectoryReader.open(FSDirectory.open(Paths.get(insDir)));
         // open a searcher over the reader
         IndexSearcher insSearcher = new IndexSearcher(insReader);
 
-        Analyzer analyzer = new EnglishAnalyzer();
+        Analyzer analyzer = new StandardAnalyzer();
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in, "utf-8"));
-        SortField sortField = new SortedNumericSortField(InstancesFields.OCCURRENCES.name(), SortField.Type.LONG, true);
+        SortField sortField = new SortedNumericSortField(InstancesFields.FREQUENCY.name(), SortField.Type.LONG, true);
         Sort sort = new Sort(sortField);
         System.out.println("Total instances: " + insReader.numDocs());
+
+        HashMap<String,Float> boostsMap = new HashMap<>();
+        boostsMap.put(altLabelFieldName, 2f);
+        boostsMap.put(labelFieldName, 5f);
+
+        MultiFieldQueryParser queryParser = new MultiFieldQueryParser(
+                new String[] {labelFieldName, altLabelFieldName},
+                analyzer, boostsMap);
 
         while (true) {
             System.out.println("Enter search code:");
@@ -63,9 +76,9 @@ public class SearchInstances {
                         Query query;
                         TopDocs results;
                         if(opCode == 0) {
-                            query = new WildcardQuery(new Term(InstancesFields.Q.name(), line));
+                            query = new WildcardQuery(new Term(InstancesFields.ID.name(), line));
                         } else if(opCode == 1) {
-                            query = new QueryParser(InstancesFields.LABEL.name(), analyzer).parse(line);
+                            query = queryParser.parse(line);
                         } else {
                             query = new MatchAllDocsQuery();
                         }
@@ -84,9 +97,9 @@ public class SearchInstances {
                             String label;
                             String occurrences;
                             Document doc = insSearcher.doc(hits[i].doc);
-                            subject = doc.get(InstancesFields.Q.name());
-                            label = doc.get(InstancesFields.LABEL.name());
-                            occurrences = doc.get(InstancesFields.NUMBER.name());
+                            subject = doc.get(InstancesFields.ID.name());
+                            label = doc.get(labelFieldName);
+                            occurrences = doc.get(InstancesFields.FREQ_STORED.name());
                             int cache = doc.getFields(InstancesFields.PROPERTY.name()).length;
 
                             System.out.println((i+1)+" "+subject+"\t"+label+"\t"+occurrences + "\t" + cache);

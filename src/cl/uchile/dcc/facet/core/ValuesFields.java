@@ -1,5 +1,5 @@
 package cl.uchile.dcc.facet.core;
 
-public enum ValuesField {
+public enum ValuesFields {
     BASE, VALUES
 }
