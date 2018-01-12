@@ -1,14 +1,12 @@
 package cl.uchile.dcc.facet.web;
 
 import cl.uchile.dcc.facet.core.InstancesFields;
-import cl.uchile.dcc.facet.core.ScoreBoostsOperator;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.queries.function.FunctionScoreQuery;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
@@ -73,17 +71,19 @@ public class InstancesServlet extends HttpServlet {
                 baseAutoCompleteQuery = queryParser.parse(keyword + "*");
             }
             Query baseLiteralQuery = queryParser.parse(keyword);
-
+/*
             DoubleValuesSource boostsSource = DoubleValuesSource.fromDoubleField(InstancesFields.RANK.name());
             boostsSource = DoubleValuesSource.function(boostsSource, new ScoreBoostsOperator());
             boostsSource = DoubleValuesSource.scoringFunction(boostsSource, (Double src, Double score) -> src*score);
-
+*/
             if(baseAutoCompleteQuery != null)
-                queryBuilder.add(new FunctionScoreQuery(baseAutoCompleteQuery, boostsSource), BooleanClause.Occur.SHOULD);
-            queryBuilder.add(new FunctionScoreQuery(baseLiteralQuery, boostsSource), BooleanClause.Occur.SHOULD);
+                queryBuilder.add(baseAutoCompleteQuery, BooleanClause.Occur.SHOULD);
+            queryBuilder.add(baseLiteralQuery, BooleanClause.Occur.SHOULD);
             Query query = queryBuilder.build();
 
-            TopDocs results = searcher.search(query, DOCS_PER_PAGE);
+            Sort sorting = new Sort(new SortField(InstancesFields.RANK.name(), SortField.Type.DOUBLE, true));
+
+            TopDocs results = searcher.search(query, DOCS_PER_PAGE, sorting);
             ScoreDoc[] hits = results.scoreDocs;
             for(ScoreDoc hit : hits) {
                 Document doc = searcher.doc(hit.doc);

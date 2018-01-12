@@ -231,5 +231,13 @@
       </div>
       </div>
   </div>
+
+  <footer class="footer">
+      <div class="container">
+          <div class="text-muted text-right">
+              <a href="about.html">About</a>
+          </div>
+      </div>
+  </footer>
   </body>
 </html>
