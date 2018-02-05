@@ -208,7 +208,12 @@
         <button type="button" class="btn btn-default btn-xs" value="<%= property.getCode() %>" onclick="showPropertyValues(this)">
             <span class="glyphicon glyphicon-plus"></span>
         </button>
-        <%= property.getName()+" ("+property.getValue()+")" %>
+        <%= property.getName()+" ("+property.getValue()+" "%>
+    <% if(lang.equals("es")) { %>
+    <%="resultados)"%>
+    <% } else { %>
+    <%="results)"%>
+    <% } %>
         <br>
         <div id="<%=property.getCode()%>"></div>
         <button type="submit" id="<%=property.getCode()%>-btn" hidden><span class="glyphicon glyphicon-search"></span></button>

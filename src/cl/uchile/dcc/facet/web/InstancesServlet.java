@@ -92,14 +92,26 @@ public class InstancesServlet extends HttpServlet {
                 if(label==null) label = q;
                 String occurrences = doc.get(InstancesFields.FREQ_STORED.name());
                 if(label.contains(keyword)) {
-                    out.println("<option code='" + q + "'>" + label + " (" + occurrences + ")</option>");
+                    out.print("<option code='" + q + "'>" + label + " (" + occurrences);
+                    if (lang.equals("es")) {
+                        out.print(" resultados");
+                    } else {
+                        out.print(" results");
+                    }
+                    out.println(")</option>");
                     continue;
                 }
                 IndexableField[] altLabels = doc.getFields(altLabelFieldName);
                 for(IndexableField altLabel : altLabels) {
                     String name = altLabel.stringValue();
                     if(name.contains(keyword)) {
-                        out.println("<option code='" + q + "'>" + name + " (" + occurrences + ")</option>");
+                        out.print("<option code='" + q + "'>" + name + " (" + occurrences);
+                        if (lang.equals("es")) {
+                            out.print(" resultados");
+                        } else {
+                            out.print(" results");
+                        }
+                        out.println(")</option>");
                         break;
                     }
                 }

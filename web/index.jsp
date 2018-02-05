@@ -183,7 +183,13 @@
                               <label for="ins-input">Select a type:
                                   <% } %>
                                   <i id="load-icon" style="display: none" class='fa fa-circle-o-notch fa-spin'></i> </label>
-                              <input id="ins-input" class="form-control" list="instances">
+                              <input id="ins-input" class="form-control" list="instances"
+                                  <% if(lang.equals("es")) { %>
+                                      placeholder="ej. persona, país, taxón, etc."
+                                      <% } else { %>
+                                      placeholder="e.g. person, country, taxon, etc."
+                                          <% } %>
+                              >
                               <input type="hidden" name="instance" id="instance-hidden">
                       </div>
 
