@@ -26,6 +26,9 @@
 
   <script>
       function getInstances() {
+          var input = document.getElementById("ins-input");
+          var keyword = input.value;
+          if (keyword.endsWith(')')) return;
           var loadIcon = document.getElementById("load-icon");
           loadIcon.style.display = "inline-block";
           var request = new XMLHttpRequest();
@@ -36,9 +39,8 @@
                   loadIcon.style.display = "none";
               }
           };
-          var input = document.getElementById("ins-input");
           var lang = document.getElementById("lang")==null ? "" : document.getElementById("lang").value;
-          var url = "instances?keyword="+input.value;
+          var url = "instances?keyword="+keyword;
           if(lang !== "") {
               url = url + "&lang=" + lang;
           }

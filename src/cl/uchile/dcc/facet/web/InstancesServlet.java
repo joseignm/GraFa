@@ -85,6 +85,8 @@ public class InstancesServlet extends HttpServlet {
 
             TopDocs results = searcher.search(query, DOCS_PER_PAGE, sorting);
             ScoreDoc[] hits = results.scoreDocs;
+            if(hits.length == 0) throw new Exception();
+
             for(ScoreDoc hit : hits) {
                 Document doc = searcher.doc(hit.doc);
                 String label = doc.get(labelFieldName);
@@ -117,7 +119,8 @@ public class InstancesServlet extends HttpServlet {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace(out);
+            //e.printStackTrace(out);
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
         }
     }
 
