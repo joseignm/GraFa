@@ -15,7 +15,7 @@ class CacheHandler extends AbstractRDFHandler {
     private static final int M_PRIME = 50000;
     private static final int TICKS = 100000;
 
-    private List<String> poList;
+    private TreeSet<String> poSet;
     private Map<String, Integer> map;
 
     private Resource last;
@@ -24,7 +24,10 @@ class CacheHandler extends AbstractRDFHandler {
     private int read;
 
     CacheHandler(List<String> poList) throws IOException {
-        this.poList = poList;
+        // use for log(n) contains
+        poSet = new TreeSet<String>();
+        poSet.addAll(poList);
+        
         map = new HashMap<>();
         last = null;
         read = 0;
@@ -34,24 +37,25 @@ class CacheHandler extends AbstractRDFHandler {
     }
 
     private List<String> getAllCombinations(List<String> list) {
+    	Set<String> types = new TreeSet<>();
         List<String> results = new ArrayList<>();
         String instanceOfCode = properties.getProperty("instanceOf");
-        String instance = null;
         for(String e : list) {
             if(e.startsWith(instanceOfCode)) {
                 results.add(e);
-                instance = e;
+                types.add(e);
             }
         }
-        if(instance == null) {
+        if(types.isEmpty()) {
             return results;
         }
-        list.remove(instance);
         for(String element : list) {
-            int resultsLength = results.size();
-            for(int j = 0; j < resultsLength; j++) {
-                results.add(results.get(j) + "||" + element);
-            }
+        	if(!types.contains(element)){
+	            int resultsLength = results.size();
+	            for(int j = 0; j < resultsLength; j++) {
+	                results.add(results.get(j) + "||" + element);
+	            }
+        	}
         }
         return results;
     }
@@ -73,18 +77,7 @@ class CacheHandler extends AbstractRDFHandler {
         }
         // NEW SUBJECT
         if(!last.toString().equals(subject.toString())) {
-            subjectPoList = subjectPoList.stream()
-                    .sorted((e1, e2) -> poList.indexOf(e1) - poList.indexOf(e2))
-                    .collect(Collectors.toList());
-            List<String> combinations = getAllCombinations(subjectPoList);
-            // Add to the map all possible combinations
-            for(String combination : combinations) {
-                if(map.containsKey(combination)) {
-                    map.replace(combination, map.get(combination) + 1);
-                } else {
-                    map.put(combination, 1);
-                }
-            }
+        	updateEntity();
             // Start a new list for the new subject
             last = subject;
             subjectPoList = new ArrayList<>();
@@ -92,27 +85,34 @@ class CacheHandler extends AbstractRDFHandler {
         // PROPERTIES
         String predicate = s.getPredicate().toString();
         if(predicate.startsWith(propertyIRI)) {
-            String p = predicate.replace(propertyIRI, "");
+        	String p = predicate.substring(propertyIRI.length());
             String object = s.getObject().toString();
-            String q = object.replace(entityIRI, "");
+            String q = object.substring(entityIRI.length());
             String value = p + "##" + q;
-            if(poList.contains(value)) {
+            if(poSet.contains(value)) {
                 subjectPoList.add(value);
             }
         }
     }
-
-    List<String> getResults() {
-        // Process the last subject
+    
+    void updateEntity(){
+    	Collections.sort(subjectPoList);
         List<String> combinations = getAllCombinations(subjectPoList);
         // Add to the map all possible combinations
         for(String combination : combinations) {
-            if(map.containsKey(combination)) {
-                map.replace(combination, map.get(combination) + 1);
-            } else {
-                map.put(combination, 1);
-            }
+        	Integer count = map.get(combination);
+        	if(count==null) count = 0;
+        	count = count + 1;
+            map.put(combination, 1);
         }
+    }
+    
+    @Override
+    public void endRDF(){
+    	updateEntity();
+    }
+
+    List<String> getResults() {
         // Return results
         return map.entrySet().stream()
                 .filter(e -> e.getValue() > M_PRIME)

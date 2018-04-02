@@ -41,6 +41,8 @@ public class CacheBuilder {
             if(frequency > M_PRIME)
                 map.put(poCode, frequency);
         }
+        
+        System.out.println(read+" PO values processed in total.");
         return map.entrySet().stream()
                 .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
                 .map(Map.Entry::getKey)
