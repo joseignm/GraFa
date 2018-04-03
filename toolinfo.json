@@ -1,0 +1,9 @@
+{
+	"name": "grafa-faceted-search",
+	"title": "GraFa: Faceted Search",
+	"description": "Faceted Search Engine and Browser for Wikdiata",
+	"url": "http://grafa.dcc.uchile.cl/",
+	"keywords": "search, browse, wikidata, facet",
+	"author": "José Moreno-Vega, Aidan Hogan",
+	"repository": "https://github.com/joseignm/GraFa.git"
+}
