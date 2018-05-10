@@ -1,0 +1,9 @@
+{
+  "name" : "grafa",
+  "title" : "GraFa",
+  "description" : "Faceted Browsing over Wikidata triples.",
+  "url" : "http://grafa.dcc.uchile.cl/",
+  "keywords" : "facet, search, browser",
+  "author" : "José Moreno, Aidan Hogan",
+  "repository" : "https://github.com/joseignm/GraFa"
+}
