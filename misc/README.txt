@@ -16,9 +16,10 @@ queryExperiments.csv describes the performance experiments run by emulating user
  - Time: Time taken (ms) from question being displayed to response being given or question being skipped
  
  userStudyRaw.csv describes the responses given by users in the order received
- - first column: user id
- - second column: [question id][A: Wikidata QueryService, B: Grafa][S: Skip, F:Answer submitted]
- - third column: answer submitted (URL of results page)
+ - User: user id
+ - Key: [question id][A: Wikidata QueryService, B: Grafa][S: Skip, F:Answer submitted]
+ - Response: value of answer submitted (URL of results page)
+ - CurrentTime: UNIX time of response/skip
  
  userQuestions.csv:
  - ID: question ID
