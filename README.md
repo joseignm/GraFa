@@ -7,12 +7,11 @@ The system is currently running on: http://grafa.dcc.uchile.cl
 
 ## Installation
 
-### Requiered libraries:
+### Required libraries:
 
 * Lucene 6.5
 * Tomcat 7
 * RDF4J 2.2
-* ...
 
 ### Config file
 
